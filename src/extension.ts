@@ -6,6 +6,7 @@ import * as tilde from 'tilde-expansion';
 import * as tmp from 'tmp';
 import * as child_process from 'child_process';
 import * as util from './util';
+import * as fs from "fs";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -58,8 +59,12 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         keypath = tmp.tmpNameSync();
-        let cmd = `touch ${keypath} && echo "${pass}" > ${keypath}`;
-        exec(cmd);
+        fs.writeFile(keypath, pass, (err) => {
+            if (err) {
+                return console.error(err);
+            }
+            console.log("Wrote password to temporary file ${keypath}");
+        });
       }
     }
 
@@ -74,7 +79,12 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     if (pass != "" && keypath != "") {
-      exec(`rm -f ${keypath}`);
+      fs.unlink(keypath, (err) => {
+            if (err) {
+                return console.error(err);
+            }
+            console.log("Removed temporary file ${keypath}");
+        })
     }
   };
 
